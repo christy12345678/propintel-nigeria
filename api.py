@@ -1,5 +1,6 @@
 import os
 import json
+from statistics import mode
 import pandas as pd
 import numpy as np
 import streamlit as st
@@ -213,31 +214,27 @@ if not os.path.exists(FEEDBACK_FILE):
 # =====================================================================
 # FRONTEND INTERFACE VIEW DESIGN (AUTHENTICATION GATEWAY)
 # =====================================================================
-if not st.session_state["logged_in"]:
-    # 🔒 This screen only renders if the user has NOT authenticated
-    st.markdown("<h1 style='text-align: center; color: #1E3A8A;'>🇳🇬 PropIntel Intelligence Suite</h1>", unsafe_allow_html=True)
-    col_l, col_c, col_r = st.columns(3)
-    with col_c:
-        st.markdown("---")
-        user_in = st.text_input("Username / Email Profile")
-        pass_in = st.text_input("Security Key Password", type="password")
-        if st.button("Authenticate Dashboard", use_container_width=True):
-            # 🟢 CLOUD SAFE FALLBACK USER PROFILES
-            users = {"admin": "password123"}
-            
-            # Safely check if any extra profiles exist on the server disk
-            if os.path.exists(USER_DB_FILE):
-                try:
-                    with open(USER_DB_FILE, "r") as f: 
-                        users.update(json.load(f))
-                except Exception:
-                    pass
-                    
-            if user_in in users and users[user_in] == pass_in:
+if mode == "Profile Login":
+    if st.button("Authenticate Dashboard", use_container_width=True):
+        # Cloud-safe baseline credentials
+        users = {"admin": "password123"}
+                
+        if os.path.exists(USER_DB_FILE):
+            try:
+                with open(USER_DB_FILE, "r") as f: 
+                    users.update(json.load(f))
+            except Exception:
+                 pass
+                
+        # 🟢 CRITICAL CLEANUP: Force text inputs to lower-case and strip hidden keyboard spaces!
+        clean_user_input = user_in.strip().lower() # pyright: ignore[reportUndefinedVariable]
+        clean_pass_input = pass_in.strip() # pyright: ignore[reportUndefinedVariable]
+                
+        if clean_user_input in users and users[clean_user_input] == clean_pass_input:
                 st.session_state["logged_in"] = True
-                st.session_state["username"] = user_in
+                st.session_state["username"] = clean_user_input
                 st.rerun()
-            else: 
+        else: 
                 st.error("Access parameters failed. Make sure your credentials map correctly.")
 
 

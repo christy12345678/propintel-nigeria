@@ -1,0 +1,10 @@
+streamlit
+catboost
+numpy
+pandas
+joblib
+google-genai
+groq
+pydantic
+python-dotenv
+
